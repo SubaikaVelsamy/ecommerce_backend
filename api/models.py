@@ -55,3 +55,21 @@ class Category(models.Model):
 
     def __str__(self):
         return self.name
+    
+class Product(models.Model):
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    price = models.PositiveIntegerField(blank=False,null=False,default=0)
+    stock = models.IntegerField(blank=False,null=False,default=0)
+    category_id = models.IntegerField(blank=False,null=False)
+    image_url = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    REQUIRED_FIELDS = ['name,price,stock,category_id']
+    
+    class Meta:
+        db_table = 'products'
+
+    def __str__(self):
+        return self.name

@@ -1,6 +1,6 @@
 # api/serializers.py
 from rest_framework import serializers
-from .models import User, Category
+from .models import User, Category, Product
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -67,6 +67,22 @@ class CategorySerializer(serializers.ModelSerializer):
         if Category.objects.filter(name__iexact=value).exclude(id=category_id).exists():
             raise serializers.ValidationError(
                 "Category with this name already exists."
+            )
+        return value
+    
+class ProductSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = Product
+        fields = ['id', 'name', 'description','price','stock','category_id','image_url', 'created_at', 'updated_at']
+        read_only_fields = ['created_at', 'updated_at']
+
+    def validate_name(self, value):
+        product_id = self.instance.id if self.instance else None
+
+        if Product.objects.filter(name__iexact=value).exclude(id=product_id).exists():
+            raise serializers.ValidationError(
+                "Product with this name already exists."
             )
         return value
 

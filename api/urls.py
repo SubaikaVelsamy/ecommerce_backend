@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import RegisterView, LoginView, ProfileView, LogoutView, CategoryView, CategoryUpdateView, CategoryGetView, CategoryDeleteView, ProductView, ProductUpdateView
+from .views import RegisterView, LoginView, ProfileView, LogoutView, CategoryView, CategoryUpdateView, CategoryGetView, CategoryDeleteView, ProductView, ProductUpdateView, ProductDeleteView, ProductGetView, ProductListView, ProductDetailView, AddToCartView, CartClearView, CartView, CheckoutView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 urlpatterns = [
@@ -14,4 +14,14 @@ urlpatterns = [
     path('auth/delete_category/<int:pk>', CategoryDeleteView.as_view(), name='delete_category'),
     path('auth/save_product/', ProductView.as_view(), name='save_product'),
     path('auth/update_product/<int:pk>', ProductUpdateView.as_view(), name='product_category'),
+    path('auth/delete_product/<int:pk>', ProductDeleteView.as_view(), name='delete_product'),
+    path('auth/view_product/<int:pk>', ProductGetView.as_view(), name='view_product'),
+    path('products/', ProductListView.as_view(), name='product-list'),
+    path('products/<int:pk>/', ProductDetailView.as_view(), name='product-detail'),
+    path('add_to_cart/', AddToCartView.as_view(), name='add_to_cart'),
+    path('clear_cart/<int:pk>/', CartClearView.as_view(), name='clear_cart'),
+    path('view_cart/<int:pk>/', CartView.as_view(), name='view_cart'),
+    path('checkout/', CheckoutView.as_view(), name='checkout'),
+
+
 ]

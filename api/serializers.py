@@ -1,6 +1,6 @@
 # api/serializers.py
 from rest_framework import serializers
-from .models import User, Category, Product
+from .models import User, Category, Product, Cart, CartItem
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -74,7 +74,7 @@ class ProductSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Product
-        fields = ['id', 'name', 'description','price','stock','category_id','image_url', 'created_at', 'updated_at']
+        fields = ['id', 'name', 'description','price','stock','category','image_url', 'created_at', 'updated_at']
         read_only_fields = ['created_at', 'updated_at']
 
     def validate_name(self, value):
@@ -85,4 +85,49 @@ class ProductSerializer(serializers.ModelSerializer):
                 "Product with this name already exists."
             )
         return value
+    
+class ProductListSerializer(serializers.ModelSerializer):
+    category_name = serializers.CharField(source='category.name', read_only=True)
+
+    class Meta:
+        model = Product
+        fields = ['id', 'name', 'price', 'stock', 'category_name', 'image_url']
+
+class CartViewSerializer(serializers.ModelSerializer):
+    product_id = serializers.IntegerField(source='product.id', read_only=True)
+    product_name = serializers.CharField(source='product.name', read_only=True)
+    item_total = serializers.SerializerMethodField()
+
+    class Meta:
+        model = CartItem
+        fields = ['product_id', 'product_name', 'quantity', 'item_total']
+        
+    def get_item_total(self, obj):
+        return obj.quantity * obj.product.price
+
+class ProductDetailSerializer(serializers.ModelSerializer):
+    category_name = serializers.CharField(source='category.name', read_only=True)
+
+    class Meta:
+        model = Product
+        fields = [
+            'id', 'name', 'description',
+            'price', 'stock',
+            'category_name', 'image_url'
+        ]
+
+class CartItemSerializer(serializers.ModelSerializer):
+    product_name = serializers.CharField(source='product.name', read_only=True)
+    product_price = serializers.DecimalField(source='product.price', max_digits=10, decimal_places=2, read_only=True)
+    
+    class Meta:
+        model = CartItem
+        fields = ['id', 'product', 'product_name', 'product_price', 'quantity']
+
+class CartSerializer(serializers.ModelSerializer):
+    items = CartItemSerializer(many=True, read_only=True)
+    
+    class Meta:
+        model = Cart
+        fields = ['id', 'user', 'items']
 

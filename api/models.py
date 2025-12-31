@@ -61,7 +61,7 @@ class Product(models.Model):
     description = models.TextField(blank=True, null=True)
     price = models.PositiveIntegerField(blank=False,null=False,default=0)
     stock = models.IntegerField(blank=False,null=False,default=0)
-    category_id = models.IntegerField(blank=False,null=False)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE)
     image_url = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -73,3 +73,56 @@ class Product(models.Model):
 
     def __str__(self):
         return self.name
+    
+class Cart(models.Model):
+    id = models.AutoField(primary_key=True)
+    user_id = models.IntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "cart"
+
+class CartItem(models.Model):
+    cart = models.ForeignKey(
+        Cart,
+        db_column='cart_id',
+        related_name='items',
+        on_delete=models.CASCADE
+    )
+    product = models.ForeignKey(
+        Product,
+        db_column='product_id',
+        on_delete=models.CASCADE
+    )
+    quantity = models.PositiveIntegerField(default=1)
+
+    class Meta:
+        db_table = "cart_items"
+        unique_together = ('cart', 'product_id')
+
+class Order(models.Model):
+    STATUS_CHOICES = (
+        ('pending', 'Pending'),
+        ('shipped', 'Shipped'),
+        ('delivered', 'Delivered'),
+    )
+
+    user_id = models.IntegerField()
+    total_price = models.DecimalField(max_digits=10, decimal_places=2)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'orders'
+
+
+class OrderItem(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
+    product_id = models.IntegerField()
+    quantity = models.PositiveIntegerField()
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+
+    class Meta:
+        db_table = 'order_items'

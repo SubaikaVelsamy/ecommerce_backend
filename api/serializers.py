@@ -1,6 +1,6 @@
 # api/serializers.py
 from rest_framework import serializers
-from .models import User, Category, Product, Cart, CartItem
+from .models import User, Category, Product, Cart, CartItem, Order
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -130,4 +130,20 @@ class CartSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cart
         fields = ['id', 'user', 'items']
+
+class OrderSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = Order
+        fields = ['id', 'user_id', 'total_price','status', 'created_at', 'updated_at']
+        read_only_fields = ['created_at', 'updated_at']
+
+    def validate_name(self, value):
+        order_id = self.instance.id if self.instance else None
+
+        if Order.objects.filter(name__iexact=value).exclude(id=order_id).exists():
+            raise serializers.ValidationError(
+                "Order already Saved."
+            )
+        return value
 

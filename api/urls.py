@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import RegisterView, LoginView, ProfileView, LogoutView, CategoryView, CategoryUpdateView, CategoryGetView, CategoryDeleteView, ProductView, ProductUpdateView, ProductDeleteView, ProductGetView, ProductListView, ProductDetailView, AddToCartView, CartClearView, CartView, CheckoutView
+from .views import RegisterView, LoginView, ProfileView, LogoutView, CategoryView, CategoryUpdateView, CategoryGetView, CategoryDeleteView, ProductView, ProductUpdateView, ProductDeleteView, ProductGetView, ProductListView, ProductDetailView, AddToCartView, CartClearView, CartView, CheckoutView, OrderStatusUpdateView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 urlpatterns = [
@@ -20,8 +20,9 @@ urlpatterns = [
     path('products/<int:pk>/', ProductDetailView.as_view(), name='product-detail'),
     path('add_to_cart/', AddToCartView.as_view(), name='add_to_cart'),
     path('clear_cart/<int:pk>/', CartClearView.as_view(), name='clear_cart'),
-    path('view_cart/<int:pk>/', CartView.as_view(), name='view_cart'),
+    path('view_cart/<int:cart_id>/', CartView.as_view(), name='view_cart'),
     path('checkout/', CheckoutView.as_view(), name='checkout'),
+    path('update_order_status/<int:pk>/', OrderStatusUpdateView.as_view(), name='update_order_status'),
 
 
 ]

@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 from rest_framework.generics import RetrieveAPIView, DestroyAPIView, ListAPIView
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import RegisterSerializer, LoginSerializer, LogoutSerializer, CategorySerializer, ProductSerializer, ProductListSerializer, ProductDetailSerializer, CartSerializer, CartItemSerializer, CartViewSerializer
+from .serializers import RegisterSerializer, LoginSerializer, LogoutSerializer, CategorySerializer, ProductSerializer, ProductListSerializer, ProductDetailSerializer, CartSerializer, CartItemSerializer, CartViewSerializer, OrderSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .permissions import IsAdminOrSuperAdmin
@@ -12,6 +12,9 @@ from django.shortcuts import get_object_or_404
 from .models import Category, Product, Cart, CartItem, Order, OrderItem   
 import json
 from django.db import transaction
+from .tasks import send_order_update_email
+
+
 
 class RegisterView(APIView):
     def post(self, request):
@@ -253,23 +256,10 @@ class CartView(ListAPIView):
     serializer_class = CartViewSerializer
 
     def get_queryset(self):
-        cart = Cart.objects.filter(user_id=self.request.user.id).first()
-        if not cart:
-            return CartItem.objects.none()
-
-        return CartItem.objects.select_related('product').filter(cart=cart)
-
-    def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
-        serializer = self.get_serializer(queryset, many=True)
-
-        cart_total = sum(item.quantity * item.product.price for item in queryset)
-
-        return Response({
-            "cart_id": queryset.first().cart.id if queryset else None,
-            "items": serializer.data,
-            "cart_total": cart_total
-        })
+        return CartItem.objects.select_related('product').filter(
+            cart_id=self.kwargs['cart_id'],
+            cart__user_id=self.request.user.id
+        )
     
 class CheckoutView(APIView):
     permission_classes = [IsAuthenticated]
@@ -331,3 +321,28 @@ class CheckoutView(APIView):
             "total_price": total_price,
             "status": order.status
         }, status=status.HTTP_201_CREATED)
+
+
+class OrderStatusUpdateView(APIView):
+    permission_classes = [IsAuthenticated, IsAdminOrSuperAdmin]
+
+    """ def put(self, request, pk):
+        order = get_object_or_404(Order, pk=pk)
+        serializer = OrderSerializer(order, data=request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) """
+
+    def patch(self, request, pk):
+        order = get_object_or_404(Order, pk=pk)
+        serializer = OrderSerializer(order, data=request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+            send_order_update_email.delay(order.id, "subaika.nadar@luminad.com", order.status)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

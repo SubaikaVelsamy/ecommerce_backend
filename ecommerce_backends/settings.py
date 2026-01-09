@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
-    'api',  # your app
+    'api.apps.ApiConfig',  # your app
 ]
 
 from datetime import timedelta
@@ -98,7 +98,7 @@ DATABASES = {
         'NAME': 'ecomm_db',
         'USER': 'postgres',        # change if different
         'PASSWORD': 'admin123',
-        'HOST': 'localhost',
+        'HOST': 'db',
         'PORT': '5432',
     }
 }
